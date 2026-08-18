@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 #
-# sync.sh — pull the policy repository and reinstall when the watched subtree
+# sync.sh: pull the policy repository and reinstall when the watched subtree
 # has moved. Driven by the LaunchAgent or the systemd timer that install.sh
 # sets up; there is no reason to run it by hand except to test it.
 #
-# It compares the current tree SHA of the watched subtree against the SHA that
-# was last INSTALLED, not against the previous HEAD. Comparing HEAD is blind to
-# a run that pulled successfully and then failed to install: the next run sees
-# no movement and never retries, so the machine sits on a stale policy for ever
-# with nothing in the log to say so.
+# It compares the current tree SHA against the SHA that was last INSTALLED,
+# not against the previous HEAD. Comparing HEAD is blind to a run that pulled
+# successfully and then failed to install: the next wake sees no movement and
+# never retries, so the machine sits on a stale policy forever with nothing in
+# the log to say so.
 #
 # Two things make a run give up quietly rather than break anything:
 #
@@ -26,9 +26,9 @@ STATE_DIR="${STATE_DIR:-${HOME}/.config/claude-settings-sync}"
 INSTALLER="${INSTALLER:-${SCRIPT_DIR}/install.sh}"
 
 # Everything else comes from the file install.sh wrote. Re-deriving it here
-# would give the timer different values from the ones the install used: a
-# different watched tree, so a reinstall every four hours for ever, and a
-# different label, so a second sudoers fragment that --uninstall never removes.
+# would hand the timer values the install never used: another watched tree, so
+# a reinstall every four hours forever, and another label, so a second sudoers
+# fragment that --uninstall never removes.
 CONFIG="${STATE_DIR}/config"
 if [[ -r "$CONFIG" ]]; then
   # shellcheck source=/dev/null

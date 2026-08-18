@@ -1,11 +1,11 @@
-# __LABEL__.timer — four-hourly trigger.
+# __LABEL__.timer: the four-hourly trigger.
 #
 # Persistent=true is the systemd analogue of launchd running a missed job on
 # wake: a machine that was off when the timer was due runs it shortly after
 # boot, rather than sitting on a stale policy for another full interval.
 #
-# A user timer only runs while the user has a session. On a server that means
-# `loginctl enable-linger <user>` is required before it fires unattended.
+# A user timer only runs while the user has a session. On a server it needs
+# `loginctl enable-linger <user>` before it fires unattended.
 
 [Unit]
 Description=Run the Claude Code managed-settings sync every 4 hours

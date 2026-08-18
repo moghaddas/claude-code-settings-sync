@@ -1,4 +1,4 @@
-# __LABEL__.service — runs sync.sh once.
+# __LABEL__.service: runs sync.sh once.
 #
 # Installed by install.sh into ~/.config/systemd/user/ with the placeholders
 # substituted. Triggered by the paired timer, never enabled on its own.
@@ -13,4 +13,5 @@ Documentation=file:__SCRIPT_DIR__/install.sh
 [Service]
 Type=oneshot
 Environment=REPO_DIR=__REPO_DIR__
+Environment=STATE_DIR=__STATE_DIR__
 ExecStart=/usr/bin/env bash __SCRIPT_DIR__/sync.sh

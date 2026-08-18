@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <!--
-  __LABEL__ — a per-user LaunchAgent that runs sync.sh every four hours.
+  __LABEL__: a per-user LaunchAgent that runs sync.sh every four hours.
 
   Installed by install.sh into ~/Library/LaunchAgents/ with the placeholders
   substituted.
@@ -11,8 +11,8 @@
   installer run on top of the schedule; four hours is frequent enough on its
   own, and the job costs nothing when the subtree has not moved.
 
-  PATH is set explicitly. A LaunchAgent inherits almost nothing, and git
-  installed by Homebrew is not on the default path.
+  This sets PATH explicitly. A LaunchAgent inherits almost nothing, and git
+  installed by Homebrew is not on the default one.
 -->
 <plist version="1.0">
 <dict>
@@ -45,6 +45,8 @@
     <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
     <key>REPO_DIR</key>
     <string>__REPO_DIR__</string>
+    <key>STATE_DIR</key>
+    <string>__STATE_DIR__</string>
   </dict>
 </dict>
 </plist>

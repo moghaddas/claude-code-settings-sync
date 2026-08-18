@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 #
-# install.sh — install a Claude Code managed-settings policy from a git
+# install.sh: install a Claude Code managed-settings policy from a git
 # checkout, and keep it current without an MDM.
 #
-# Every published way to deploy managed-settings.json assumes you have Jamf,
-# Intune, Group Policy or Ansible. Most teams have none of those. This uses the
-# thing they do have: a git repository, a timer, and one sudoers rule.
+# Every published way to deploy managed-settings.json assumes Jamf, Intune,
+# Group Policy or Ansible. Most teams have none of those. This uses what they
+# do have: a git repository, a timer, and one sudoers rule.
 #
 #   install.sh              install the policy and the sync timer
 #   install.sh --uninstall  remove both
@@ -38,7 +38,7 @@ while [[ $# -gt 0 ]]; do
     --uninstall) UNINSTALL=true ;;
     --repo)      REPO_DIR="${2:-}"; shift ;;
     --policy)    POLICY_REL="${2:-}"; shift ;;
-    -h|--help)   sed -n '2,17p' "$0"; exit 0 ;;
+    -h|--help)   sed -n '2,15p' "$0"; exit 0 ;;
     *)           die "unknown flag: $1" ;;
   esac
   shift
@@ -96,11 +96,11 @@ fi
 
 command -v git >/dev/null || die "git is required"
 
-# The repository is never guessed. Discovering it from the script's own
-# location attaches the timer to whatever checkout happens to enclose these
-# files: drop them in a dotfiles repo, or a $HOME that is itself a repo, and
-# the machine runs `git pull` against that repository every four hours for the
-# rest of its life.
+# Discovery is guarded, never blind. Taking the enclosing checkout on trust
+# attaches the timer to whatever repository happens to hold these files: drop
+# them in a dotfiles tree, or a $HOME that is itself a checkout, and the
+# machine runs `git pull` against it every four hours for the rest of its
+# life. The policy has to be present before the guess is accepted.
 if [[ -z "$REPO_DIR" ]]; then
   guess="$(git -C "$SCRIPT_DIR" rev-parse --show-toplevel 2>/dev/null || true)"
   [[ -n "$guess" ]] || die "not in a git checkout. Pass --repo PATH."
@@ -123,7 +123,7 @@ if command -v jq >/dev/null; then
 elif command -v python3 >/dev/null; then
   VALIDATOR=(python3 -c 'import json,sys; json.load(sys.stdin)')
 else
-  die "neither jq nor python3 found, and the policy must be validated before it is installed"
+  die "no jq and no python3; the policy cannot be validated, so nothing is installed"
 fi
 git -C "$REPO_DIR" show "HEAD:${POLICY_REL}" | "${VALIDATOR[@]}" >/dev/null 2>&1 \
   || die "HEAD:${POLICY_REL} is not valid JSON"
@@ -148,8 +148,8 @@ $DRY_RUN && note "dry run: nothing below is executed"
 #
 # It reads the policy out of the git object store rather than off disk, which
 # is what closes the hole in the obvious version of this design. A rule that
-# lets you run `install <source> <dest>` as root, where <source> is a path you
-# can write, lets you replace <source> with a symlink to /etc/shadow: install
+# runs `install <source> <dest>` as root, where <source> is a path you can
+# write, lets you point <source> at a symlink to /etc/shadow: install
 # follows it and copies the CONTENT into a root-owned, world-readable file.
 # `git show` cannot be pointed outside the repository, and a symlink committed
 # to git resolves to its target string, which is not valid JSON and is
@@ -174,8 +174,8 @@ trap 'rm -f "\$TMP"' EXIT
 
 git -C "\$REPO" show "HEAD:\$REL" > "\$TMP"
 
-# Validate before anything is replaced. A file Claude Code cannot parse is
-# indistinguishable, from the user's side, from having no policy at all.
+# Validate before anything is replaced. From the user's side, a file Claude
+# Code cannot parse looks exactly like having no policy at all.
 if command -v jq >/dev/null; then
   jq -e . "\$TMP" >/dev/null
 else
@@ -234,9 +234,9 @@ run sudo "$APPLY_SCRIPT"
 
 # ---- 4. remember how this was installed -------------------------------------
 #
-# The timer re-invokes this script, and an installer that fell back to its own
-# defaults would write a second sudoers fragment under the example label that
-# --uninstall never removes, and would watch the wrong tree for ever.
+# The timer re-invokes this script. An installer that fell back to its own
+# defaults would watch the wrong tree forever and write a second sudoers
+# fragment under the example label that --uninstall never removes.
 
 note "recording the configuration at ${CONFIG}"
 if ! $DRY_RUN; then
@@ -254,7 +254,8 @@ fi
 # ---- 5. the timer -----------------------------------------------------------
 
 render() { sed -e "s|__LABEL__|${TIMER_LABEL}|g" -e "s|__USER_HOME__|${HOME}|g" \
-               -e "s|__SCRIPT_DIR__|${SCRIPT_DIR}|g" -e "s|__STATE_DIR__|${STATE_DIR}|g" "$1"; }
+               -e "s|__SCRIPT_DIR__|${SCRIPT_DIR}|g" -e "s|__STATE_DIR__|${STATE_DIR}|g" \
+               -e "s|__REPO_DIR__|${REPO_DIR}|g" "$1"; }
 
 if $WITH_TIMER; then
   if [[ $PLATFORM == macos ]]; then
@@ -293,8 +294,8 @@ fi
 # ---- 6. the marker ----------------------------------------------------------
 #
 # The tree SHA of the watched subtree, written only after everything above
-# succeeded. sync.sh compares against this, so a failed run leaves it alone
-# and the next run retries.
+# succeeded. sync.sh compares against this, so a failed attempt leaves it
+# alone and the next run retries.
 
 if ! $DRY_RUN; then
   mkdir -p "$STATE_DIR" || die "cannot create ${STATE_DIR}"

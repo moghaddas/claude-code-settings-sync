@@ -11,9 +11,9 @@
     "CLAUDE_CODE_ENABLE_TELEMETRY": "0"
   },
 
-  "_claudeMd_comment": "Text appended to every session's context, whatever the project. Keep it short; it costs tokens on every single turn.",
+  "_claudeMd_comment": "Text appended to each session's context, whatever the project. Keep it short; it costs tokens on every turn.",
   "claudeMd": "",
 
-  "_hooks_comment": "Hooks defined here run for everyone and cannot be removed by a user. Point them at a root-owned script, not at a path inside a user's home, or the guarantee is only as strong as that file's permissions.",
+  "_hooks_comment": "Hooks defined here run for everyone and nobody can remove them. Point them at a root-owned script, never at a path inside a user's home, or the guarantee is only as strong as that file's permissions.",
   "hooks": {}
 }

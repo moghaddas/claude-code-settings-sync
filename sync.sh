@@ -22,10 +22,22 @@
 set -uo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_DIR="${REPO_DIR:-$(git -C "$SCRIPT_DIR" rev-parse --show-toplevel 2>/dev/null || echo "$SCRIPT_DIR")}"
-SUBTREE="${SUBTREE:-}"   # empty watches the whole repository
 STATE_DIR="${STATE_DIR:-${HOME}/.config/claude-settings-sync}"
 INSTALLER="${INSTALLER:-${SCRIPT_DIR}/install.sh}"
+
+# Everything else comes from the file install.sh wrote. Re-deriving it here
+# would give the timer different values from the ones the install used: a
+# different watched tree, so a reinstall every four hours for ever, and a
+# different label, so a second sudoers fragment that --uninstall never removes.
+CONFIG="${STATE_DIR}/config"
+if [[ -r "$CONFIG" ]]; then
+  # shellcheck source=/dev/null
+  . "$CONFIG"
+fi
+REPO_DIR="${REPO_DIR:-}"
+SUBTREE="${SUBTREE:-}"
+TIMER_LABEL="${TIMER_LABEL:-}"
+export REPO_DIR SUBTREE TIMER_LABEL POLICY_REL
 
 # Set SUBTREE to a path to watch only part of the repository, which
 # keeps unrelated commits from triggering a reinstall.
@@ -40,6 +52,11 @@ log() { printf '%s %s\n' "$(date -u +%FT%TZ)" "$*" >> "$LOG"; }
 # Keep the log from growing without bound on a machine nobody looks at.
 if [[ -f "$LOG" ]] && [[ $(wc -c < "$LOG") -gt 1048576 ]]; then
   tail -n 500 "$LOG" > "${LOG}.tmp" && mv "${LOG}.tmp" "$LOG"
+fi
+
+if [[ -z "$REPO_DIR" ]]; then
+  log "no configuration at ${CONFIG}; run install.sh first"
+  exit 0
 fi
 
 if [[ ! -d "${REPO_DIR}/.git" ]]; then
@@ -66,7 +83,7 @@ fi
 
 log "${TREE_REF} moved ${installed:-none} -> ${current}, reinstalling"
 
-if bash "$INSTALLER" --no-timer >>"$LOG" 2>&1; then
+if bash "$INSTALLER" --no-timer --repo "$REPO_DIR" >>"$LOG" 2>&1; then
   printf '%s' "$current" > "$MARKER"
   log "installed ${current}"
 else

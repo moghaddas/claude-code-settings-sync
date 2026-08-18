@@ -19,23 +19,33 @@ macOS and Linux. Bash and git, nothing else.
 
 ## Read this first
 
-**The sudoers rule this installs means the policy is not an enforcement
-boundary against the person using the machine.**
+**This is not an enforcement boundary against the person using the machine.**
 
 Managed settings sit above user and project settings and cannot be overridden
 from inside Claude Code. That guarantee comes from the file being root-owned.
-Unattended updates need to replace a root-owned file without a password
-prompt, which needs a `NOPASSWD` sudoers rule, and the source path in that rule
-is a git checkout the user can write to.
+Unattended updates have to replace a root-owned file with nobody there to type
+a password, so there has to be a `NOPASSWD` sudoers rule, and a machine's own
+user can always reach whatever that rule can reach.
 
-So a determined local user can put whatever they like in their own policy. The
-rule is pinned to one command, one source and one destination, so it does not
-grant a root shell or an arbitrary file write. But if your threat model is the
-engineer at the keyboard rather than drift and forgetfulness, use an MDM, where
-the source file is not user-writable.
+Here the rule names one root-owned script, with no arguments, that reads the
+policy out of the git object store. So the residual power it hands a local
+user is exactly this: they can commit a different policy to the repository
+their machine tracks, and their machine will install it. No root shell, no
+arbitrary file read, no arbitrary write.
 
-For nearly every team the real problem is the second one. Nobody is fighting
-the policy; they just have an old copy of it.
+That last point is worth spelling out, because the obvious version of this
+design gets it wrong. A rule of the form `NOPASSWD: install <source> <dest>`,
+where `<source>` is a path in a checkout the user can write, is an arbitrary
+root-privileged **read** of any file on the box: replace `<source>` with a
+symlink to `/etc/shadow` and `install` follows it and copies the contents into
+a root-owned, world-readable file. Reading from git closes that, because
+`git show` cannot be pointed outside the repository and a committed symlink
+resolves to its target string, which is not valid JSON and is refused.
+
+If your threat model is the engineer at the keyboard rather than drift and
+forgetfulness, use an MDM, where the source is not user-writable at all. For
+nearly every team the real problem is the second one. Nobody is fighting the
+policy; they just have an old copy of it.
 
 ## Install
 
@@ -46,19 +56,20 @@ cd <your policy repo>
 ./install.sh
 ```
 
-`--dry-run` prints every command, including the exact sudoers fragment, and
-changes nothing. Run it first.
+`--dry-run` changes nothing and prints what each step would do, including the
+generated apply script and the exact sudoers fragment. Run it first.
 
-The policy is read from `managed-settings.json` next to the script. Point
-somewhere else with `--policy PATH`, or keep the file where the script is and
-edit it.
+**The policy has to be committed.** It is read out of git, not off disk, which
+is what keeps the sudoers rule from being a way to read arbitrary files. An
+uncommitted policy is refused with a message saying so.
 
 | Flag | |
 |---|---|
 | `--dry-run` | Print what would happen, change nothing |
 | `--no-timer` | Install the policy only, no scheduled sync |
-| `--uninstall` | Remove the policy, the sudoers fragment and the timer |
-| `--policy PATH` | Read the policy from somewhere else |
+| `--uninstall` | Remove the policy, the apply script, the sudoers fragment and the timer |
+| `--repo PATH` | The policy checkout. Required when the script is not inside it |
+| `--policy REL` | Path of the policy within the repository, default `managed-settings.json` |
 
 Configuration through the environment:
 
@@ -66,8 +77,14 @@ Configuration through the environment:
 |---|---|---|
 | `TIMER_LABEL` | `com.example.claude-settings-sync` | **Change this.** It names the LaunchAgent, the systemd units and the sudoers fragment |
 | `SUBTREE` | unset | A path to watch instead of the whole repository, so unrelated commits do not trigger a reinstall |
-| `REPO_DIR` | discovered | The checkout to pull |
-| `STATE_DIR` | `~/.config/claude-settings-sync` | Marker and log |
+| `REPO_DIR` | the enclosing checkout | The repository to pull. Discovery is refused unless that repository actually holds the policy |
+| `STATE_DIR` | `~/.config/claude-settings-sync` | Marker, config and log |
+
+Whatever you pass is recorded in `$STATE_DIR/config` and read back by the
+timer, so the scheduled run uses the same label and watches the same tree as
+the install did. Without that the timer would fall back to the defaults,
+reinstall every four hours for ever, and write a second sudoers fragment under
+the example label that `--uninstall` would never remove.
 
 ## How the sync decides
 
@@ -127,7 +144,9 @@ Two things worth knowing before you fill it in:
 
 **Invalid JSON is worse than no policy.** Claude Code ignores a file it cannot
 parse, so every machine silently loses the policy with nothing visible in the
-UI to explain it. The installer validates before it installs, and refuses.
+UI to explain it. Both the installer and the apply script validate before they
+replace anything, and refuse. Validation needs `jq` or `python3`; with neither
+present the install stops rather than proceeding unchecked.
 
 **A hook defined in the policy should point at a root-owned script.** If it
 points inside a user's home directory, the guarantee is only as strong as the

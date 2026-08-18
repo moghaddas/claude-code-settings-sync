@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  __LABEL__ — a per-user LaunchAgent that runs sync.sh every four hours.
+
+  Installed by install.sh into ~/Library/LaunchAgents/ with the placeholders
+  substituted.
+
+  If the machine is asleep when the interval elapses, launchd runs the job on
+  the next wake. RunAtLoad stays off so that logging in does not trigger an
+  installer run on top of the schedule; four hours is frequent enough on its
+  own, and the job costs nothing when the subtree has not moved.
+
+  PATH is set explicitly. A LaunchAgent inherits almost nothing, and git
+  installed by Homebrew is not on the default path.
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>__LABEL__</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/bash</string>
+    <string>__SCRIPT_DIR__/sync.sh</string>
+  </array>
+
+  <key>StartInterval</key>
+  <integer>14400</integer>
+
+  <key>RunAtLoad</key>
+  <false/>
+
+  <key>StandardOutPath</key>
+  <string>__USER_HOME__/Library/Logs/__LABEL__.log</string>
+
+  <key>StandardErrorPath</key>
+  <string>__USER_HOME__/Library/Logs/__LABEL__.log</string>
+
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>HOME</key>
+    <string>__USER_HOME__</string>
+    <key>PATH</key>
+    <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
+    <key>REPO_DIR</key>
+    <string>__REPO_DIR__</string>
+  </dict>
+</dict>
+</plist>

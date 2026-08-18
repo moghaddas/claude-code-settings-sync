@@ -1,0 +1,16 @@
+# __LABEL__.service — runs sync.sh once.
+#
+# Installed by install.sh into ~/.config/systemd/user/ with the placeholders
+# substituted. Triggered by the paired timer, never enabled on its own.
+#
+# Type=oneshot because the script exits in well under a second when the
+# watched subtree has not moved, which is almost every run.
+
+[Unit]
+Description=Claude Code managed-settings sync
+Documentation=file:__SCRIPT_DIR__/install.sh
+
+[Service]
+Type=oneshot
+Environment=REPO_DIR=__REPO_DIR__
+ExecStart=/usr/bin/env bash __SCRIPT_DIR__/sync.sh

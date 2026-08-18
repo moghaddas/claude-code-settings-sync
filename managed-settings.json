@@ -1,0 +1,19 @@
+{
+  "_comment": "Example policy. Replace it with yours before you deploy. Every key here is optional; Claude Code merges this above user and project settings, and a user cannot override what it sets.",
+
+  "permissions": {
+    "_comment": "Blocking bypass mode is the one setting most teams want first. It stops --dangerously-skip-permissions from turning every prompt off.",
+    "disableBypassPermissionsMode": "disable"
+  },
+
+  "_env_comment": "Environment variables forced on every session on this machine.",
+  "env": {
+    "CLAUDE_CODE_ENABLE_TELEMETRY": "0"
+  },
+
+  "_claudeMd_comment": "Text appended to every session's context, whatever the project. Keep it short; it costs tokens on every single turn.",
+  "claudeMd": "",
+
+  "_hooks_comment": "Hooks defined here run for everyone and cannot be removed by a user. Point them at a root-owned script, not at a path inside a user's home, or the guarantee is only as strong as that file's permissions.",
+  "hooks": {}
+}

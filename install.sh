@@ -20,6 +20,7 @@ SUBTREE="${SUBTREE:-}"
 TIMER_LABEL="${TIMER_LABEL:-com.example.claude-settings-sync}"
 STATE_DIR="${STATE_DIR:-${HOME}/.config/claude-settings-sync}"
 POLICY_REL="${POLICY_REL:-managed-settings.json}"
+SYNC_INTERVAL_SECS="${SYNC_INTERVAL_SECS:-14400}"
 
 DRY_RUN=false
 WITH_TIMER=true
@@ -45,6 +46,11 @@ while [[ $# -gt 0 ]]; do
 done
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# A bad interval has to fail here, not inside a rendered plist or unit file
+# that launchd or systemd then rejects with no reference back to this script.
+[[ "$SYNC_INTERVAL_SECS" =~ ^[1-9][0-9]*$ ]] \
+  || die "SYNC_INTERVAL_SECS must be a positive integer (seconds), got: ${SYNC_INTERVAL_SECS}"
 
 # ---- platform ---------------------------------------------------------------
 
@@ -137,6 +143,7 @@ note "repo:   ${REPO_DIR}"
 note "policy: ${POLICY_REL} (from git, at ${TREE_REF})"
 note "dest:   ${DEST}"
 note "label:  ${TIMER_LABEL}"
+note "sync every ${SYNC_INTERVAL_SECS}s"
 [[ "$TIMER_LABEL" == com.example.* ]] && warn "TIMER_LABEL is still the example value; set your own"
 $DRY_RUN && note "dry run: nothing below is executed"
 
@@ -255,7 +262,7 @@ fi
 
 render() { sed -e "s|__LABEL__|${TIMER_LABEL}|g" -e "s|__USER_HOME__|${HOME}|g" \
                -e "s|__SCRIPT_DIR__|${SCRIPT_DIR}|g" -e "s|__STATE_DIR__|${STATE_DIR}|g" \
-               -e "s|__REPO_DIR__|${REPO_DIR}|g" "$1"; }
+               -e "s|__REPO_DIR__|${REPO_DIR}|g" -e "s|__INTERVAL_SECS__|${SYNC_INTERVAL_SECS}|g" "$1"; }
 
 if $WITH_TIMER; then
   if [[ $PLATFORM == macos ]]; then

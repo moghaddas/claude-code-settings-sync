@@ -1,4 +1,4 @@
-# __LABEL__.timer: the four-hourly trigger.
+# __LABEL__.timer: the periodic trigger, every __INTERVAL_SECS__ seconds.
 #
 # Persistent=true is the systemd analogue of launchd running a missed job on
 # wake: a machine that was off when the timer was due runs it shortly after
@@ -6,13 +6,17 @@
 #
 # A user timer only runs while the user has a session. On a server it needs
 # `loginctl enable-linger <user>` before it fires unattended.
+#
+# OnUnitActiveSec takes a bare integer as seconds (systemd.time(7)), so the
+# installer passes the same unit install.sh uses for the launchd counterpart
+# without a seconds-to-span conversion.
 
 [Unit]
-Description=Run the Claude Code managed-settings sync every 4 hours
+Description=Run the Claude Code managed-settings sync every __INTERVAL_SECS__ seconds
 
 [Timer]
 OnBootSec=10min
-OnUnitActiveSec=4h
+OnUnitActiveSec=__INTERVAL_SECS__
 Persistent=true
 
 [Install]

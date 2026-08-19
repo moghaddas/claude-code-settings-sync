@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <!--
-  __LABEL__: a per-user LaunchAgent that runs sync.sh every four hours.
+  __LABEL__: a per-user LaunchAgent that runs sync.sh every __INTERVAL_SECS__ seconds.
 
   Installed by install.sh into ~/Library/LaunchAgents/ with the placeholders
   substituted.
@@ -26,7 +26,7 @@
   </array>
 
   <key>StartInterval</key>
-  <integer>14400</integer>
+  <integer>__INTERVAL_SECS__</integer>
 
   <key>RunAtLoad</key>
   <false/>

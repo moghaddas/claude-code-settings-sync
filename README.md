@@ -79,6 +79,7 @@ Configuration through the environment:
 | `REPO_DIR` | the enclosing checkout | The repository to pull. Discovery is refused unless that checkout holds the policy |
 | `POLICY_REL` | `managed-settings.json` | Same as `--policy`, for the timer's non-interactive runs |
 | `STATE_DIR` | `~/.config/claude-settings-sync` | Marker, config and log |
+| `SYNC_INTERVAL_SECS` | `14400` (4h) | How often the timer runs, in seconds. Must be a positive integer; a bad value is refused before anything is installed |
 
 Whatever you pass is recorded in `$STATE_DIR/config` and read back by the
 timer, so the scheduled run uses the same label and tree as the install.

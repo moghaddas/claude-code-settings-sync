@@ -134,6 +134,11 @@ fi
 git -C "$REPO_DIR" show "HEAD:${POLICY_REL}" | "${VALIDATOR[@]}" >/dev/null 2>&1 \
   || die "HEAD:${POLICY_REL} is not valid JSON"
 
+# A policy whose claudeMd lags the committed claude-md/ would ship the old
+# instructions while the repository reads as current.
+bash "${SCRIPT_DIR}/render-claude-md.sh" --check --repo "$REPO_DIR" --policy "$POLICY_REL" \
+  || die "refusing to install a stale claudeMd"
+
 TREE_REF="${SUBTREE:+HEAD:${SUBTREE}}"
 TREE_REF="${TREE_REF:-HEAD^{tree}}"
 git -C "$REPO_DIR" rev-parse "$TREE_REF" >/dev/null 2>&1 \

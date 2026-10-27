@@ -11,7 +11,7 @@
     "CLAUDE_CODE_ENABLE_TELEMETRY": "0"
   },
 
-  "_claudeMd_comment": "Text appended to each session's context, whatever the project. Keep it short; it costs tokens on every turn.",
+  "_claudeMd_comment": "Text appended to each session's context, whatever the project. Keep it short; it costs tokens on every turn. With a claude-md/ directory beside this file, render-claude-md.sh writes this key from the Markdown in it.",
   "claudeMd": "",
 
   "_hooks_comment": "Hooks defined here run for everyone and nobody can remove them. Point them at a root-owned script, never at a path inside a user's home, or the guarantee is only as strong as that file's permissions.",

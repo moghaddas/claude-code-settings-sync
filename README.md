@@ -14,7 +14,8 @@ This uses what a team already has:
 policy repo  ->  git pull every 4h  ->  reinstall when the tree moved
 ```
 
-macOS and Linux. Bash and git, nothing else.
+macOS and Linux. Bash, git, and `jq` or `python3` to validate the policy.
+Rendering `claude-md/` needs `python3`, and only when that directory exists.
 
 ## Security
 

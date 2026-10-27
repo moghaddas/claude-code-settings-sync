@@ -150,6 +150,55 @@ install stops rather than running unchecked.
 lives inside a user's home directory is only as strong as the permissions on
 that file, and you have written a policy that asks to be bypassed.
 
+## Shared instructions
+
+The policy's `claudeMd` key loads into every Claude Code session on the
+machine, in every repository and every subagent. It is the one place team
+instructions cannot be skipped by starting somewhere else.
+
+It is also one long JSON string, which nobody wants to edit or review. So write
+the instructions as Markdown instead:
+
+```
+managed-settings.json
+claude-md/
+  10-team.md
+  20-engineering.md
+```
+
+```
+./render-claude-md.sh      # writes claude-md/*.md into claudeMd
+git add -A && git commit
+```
+
+Files are joined in name order with a blank line between them, so a number
+prefix sets the order. Only the `claudeMd` line changes; the rest of the policy
+keeps its layout. `examples/claude-md/` has two files to start from.
+
+`claude-md/` always sits beside the policy. For a policy outside the repository
+root, pass the same `--repo` and `--policy` you give `install.sh`.
+
+**The installer refuses a stale render.** When `claude-md/` exists at `HEAD`,
+`install.sh` checks that the committed `claudeMd` matches the committed
+Markdown and stops if it does not. Otherwise a Markdown edit pushed without a
+render would look shipped while every machine kept the old text. Run the same
+check in CI:
+
+```
+./render-claude-md.sh --check
+```
+
+It judges what is committed, because that is what gets installed. An
+uncommitted edit on one machine does not hold back its updates.
+
+**The render fails above 16 KB.** That text is paid for on every turn of every
+session, and recall drops as it grows. Set `CLAUDE_MD_MAX_BYTES` to move the
+limit.
+
+Without `claude-md/`, nothing changes: write `claudeMd` by hand and the check
+passes. Rendering needs `python3`; the check needs `jq` or `python3`, like the
+rest of the install.
+
 ## Verify
 
 ```
